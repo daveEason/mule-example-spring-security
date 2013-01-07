@@ -1,0 +1,25 @@
+{
+	"orderId": "967546567",
+	"customer":{
+		"firstName": "David",
+		"lastName": "Eason",
+		"city": "San Francisco",
+		"state": "California"
+	},
+	"items":[
+		{
+			"productId": "1",
+			"name": "WIRELESS ROUTER",
+			"manufacturer": "SONY",
+			"price": "3.00",
+			"quantity": "5"
+		},
+		{
+			"productId": "2",
+			"name": "WIRELESS KEYBOARD",
+			"manufacturer": "LOGITECH",
+			"price": "5.00",
+			"quantity": "3"
+		}
+	]
+}

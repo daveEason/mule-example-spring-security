@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns="http://www.mulesoft.org/schema/mule/core"
+      xmlns:http="http://www.mulesoft.org/schema/mule/http"
+      xmlns:mule-ss="http://www.mulesoft.org/schema/mule/spring-security"
+      xmlns:jersey="http://www.mulesoft.org/schema/mule/jersey"
+      xmlns:json="http://www.mulesoft.org/schema/mule/json"
+      xmlns:spring="http://www.springframework.org/schema/beans"
+      xmlns:ss="http://www.springframework.org/schema/security"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xmlns:context="http://www.springframework.org/schema/context"
+      xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
+http://www.mulesoft.org/schema/mule/jersey http://www.mulesoft.org/schema/mule/jersey/current/mule-jersey.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
+http://www.mulesoft.org/schema/mule/spring-security http://www.mulesoft.org/schema/mule/spring-security/3.3/mule-spring-security.xsd"
+      version="EE-3.3.2">
+
+    <context:property-placeholder location="classpath:mule-app.properties"/>
+
+    <mule-ss:security-manager>
+        <mule-ss:delegate-security-provider name="memory-provider" delegate-ref="authenticationManager"/>
+    </mule-ss:security-manager>
+
+    <spring:beans>
+
+        <spring:bean id="processOrderBean" class="org.ordermanagement.ProcessOrderImpl"/>
+
+        <ss:authentication-manager alias="authenticationManager">
+            <ss:authentication-provider>
+                <ss:user-service id="userService">
+                    <ss:user name="admin_user" password="admin_password" authorities="ROLE_ADMIN"/>
+                    <ss:user name="anon_user" password="anon_password" authorities="ROLE_ANONYMOUS"/>
+                </ss:user-service>
+            </ss:authentication-provider>
+        </ss:authentication-manager>
+
+        <ss:global-method-security secured-annotations="enabled" authentication-manager-ref="authenticationManager"/>
+
+    </spring:beans>
+
+    <http:connector name="HTTPConnector" cookieSpec="netscape" validateConnections="false" doc:name="HTTP\HTTPS"/>
+
+    <flow name="Authenticate" doc:name="REST example spring security">
+
+        <http:inbound-endpoint exchange-pattern="request-response" host="${http.host}" port="${http.port}" path="${http.api.path}" connector-ref="HTTPConnector" doc:name="HTTP" doc:description="Process HTTP reqests or responses."/>
+
+        <http:basic-security-filter realm="mule-realm"/>
+
+        <jersey:resources doc:name="Jersey (Implementation)">
+            <component>
+                <spring-object bean="processOrderBean"/>
+            </component>
+        </jersey:resources>
+
+        <logger message="REST response  = #[message.payload]" level="INFO" doc:name="LOG Rest response"/>
+
+        <catch-exception-strategy>
+            <choice >
+                <when expression="#[exception.getCauseException().getClass().getName()=='org.springframework.security.access.AccessDeniedException']">
+                    <logger level="INFO" message="Access denied exception: #[exception.getCauseException().getClass().getName()]"/>
+                    <set-property propertyName="http.status" value="405"/>
+                    <http:response-builder status="405" doc:name="Status code = 405" doc:description="Access denied - Sending a 405 Http Status code as Response"/>
+                </when>
+                <otherwise>
+                    <logger message="An exception has been caught: #[exception.getCauseException().getClass().getName()]" level="ERROR" doc:name="Exception Thrown"/>
+                    <set-payload value="Error detected while processing" doc:name="Prepare response for client"/>
+                    <set-property propertyName="http.status" value="500"/>
+                    <http:response-builder status="500" doc:name="Status code = 500" doc:description="Sending a 500 Http Status code as Response"/>
+                </otherwise>
+            </choice>
+        </catch-exception-strategy>
+    </flow>
+
+</mule>

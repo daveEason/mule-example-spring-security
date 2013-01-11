@@ -26,6 +26,8 @@ http://www.mulesoft.org/schema/mule/spring-security http://www.mulesoft.org/sche
 
     <spring:beans>
 
+        <!--<spring:import resource="spring-security.xml"/>-->
+
         <spring:bean id="processOrderBean" class="org.ordermanagement.ProcessOrderImpl"/>
 
         <ss:authentication-manager alias="authenticationManager">
@@ -49,6 +51,16 @@ http://www.mulesoft.org/schema/mule/spring-security http://www.mulesoft.org/sche
 
         <http:basic-security-filter realm="mule-realm"/>
 
+        <logger message="Incoming payload = #[message.payload]" level="INFO" doc:name="LOG Rest input"/>
+
+        <!--<choice>-->
+            <!--<when expression="#[http.method == 'POST']">-->
+                <!--<byte-array-to-serializable-transformer/>-->
+                <!--<byte-array-to-string-transformer/>-->
+                <!--<byte-array-to-object-transformer doc:name="Byte Array to Object"/>-->
+            <!--</when>-->
+        <!--</choice>-->
+
         <jersey:resources doc:name="Jersey (Implementation)">
             <component>
                 <spring-object bean="processOrderBean"/>
@@ -59,16 +71,22 @@ http://www.mulesoft.org/schema/mule/spring-security http://www.mulesoft.org/sche
 
         <catch-exception-strategy>
             <choice >
+                <when expression="#[exception.getCauseException().getClass().getName()=='org.springframework.security.authentication.BadCredentialsException']">
+                    <logger level="INFO" message="Authentication failed exception: #[exception.getCauseException().getClass().getName()]"/>
+                    <!-- TODO: Determine correct http status code to return in this case -->
+                    <set-property propertyName="http.status" value="401"/>
+                    <http:response-builder status="401" doc:name="Status code = 401" doc:description="Authentication failed"/>
+                </when>
                 <when expression="#[exception.getCauseException().getClass().getName()=='org.springframework.security.access.AccessDeniedException']">
                     <logger level="INFO" message="Access denied exception: #[exception.getCauseException().getClass().getName()]"/>
                     <set-property propertyName="http.status" value="405"/>
-                    <http:response-builder status="405" doc:name="Status code = 405" doc:description="Access denied - Sending a 405 Http Status code as Response"/>
+                    <http:response-builder status="405" doc:name="Status code = 405" doc:description="Authorization exception - Access denied"/>
                 </when>
                 <otherwise>
                     <logger message="An exception has been caught: #[exception.getCauseException().getClass().getName()]" level="ERROR" doc:name="Exception Thrown"/>
                     <set-payload value="Error detected while processing" doc:name="Prepare response for client"/>
                     <set-property propertyName="http.status" value="500"/>
-                    <http:response-builder status="500" doc:name="Status code = 500" doc:description="Sending a 500 Http Status code as Response"/>
+                    <http:response-builder status="500" doc:name="Status code = 500" doc:description="Exception - Sending a 500 Http Status code as Response"/>
                 </otherwise>
             </choice>
         </catch-exception-strategy>

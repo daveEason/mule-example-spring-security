@@ -1,8 +1,6 @@
 package org.ordermanagement;
 
-import javax.ws.rs.GET;
-import javax.ws.rs.Path;
-import javax.ws.rs.Produces;
+import javax.ws.rs.*;
 
 /**
  * Interface for order processing.
@@ -30,7 +28,9 @@ public interface IProcessOrder {
 	 * 
 	 * @return String orderId
 	 */
-
+    @PUT
+    @Produces("application/json")
+    @Path("/order")
     OrderConfirmation createOrder(Order order);
 
 	/**
@@ -39,6 +39,9 @@ public interface IProcessOrder {
 	 * @param order
 	 * @return Order
 	 */
+    @POST
+    @Produces("application/json")
+    @Path("/order/{orderId}")
     OrderConfirmation updateOrder(String orderId, Order order);
 
 	/**
@@ -47,5 +50,8 @@ public interface IProcessOrder {
 	 * @param orderId
 	 * @return String
 	 */
+    @DELETE
+    @Produces("application/json")
+    @Path("/order/{orderId}")
     OrderConfirmation deleteOrder(String orderId);
 }

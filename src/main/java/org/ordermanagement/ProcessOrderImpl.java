@@ -3,7 +3,6 @@ package org.ordermanagement;
 import org.apache.commons.logging.Log;
 import org.apache.commons.logging.LogFactory;
 import org.springframework.security.access.annotation.Secured;
-import org.springframework.security.access.prepost.PreAuthorize;
 
 import javax.ws.rs.*;
 import java.util.HashMap;
@@ -15,7 +14,6 @@ import java.util.Map;
  * @author david.eason@mulesoft.com
  */
 
-@PreAuthorize("hasRole('ROLE_ADMIN')")
 @Path("/ordermgmt")
 public class ProcessOrderImpl implements IProcessOrder {
 
@@ -48,8 +46,7 @@ public class ProcessOrderImpl implements IProcessOrder {
 	 * 
 	 * @see org.ordermgmt.IProcessOrder#retrieveOrder(String orderId)
 	 */
-    //@Secured("IS_AUTHENTICATED_ANONYMOUSLY")
-    @Secured("ROLE_ADMIN")
+    @Secured("IS_AUTHENTICATED_ANONYMOUSLY")
     @Override
     @GET
     @Produces("application/json")
@@ -77,11 +74,10 @@ public class ProcessOrderImpl implements IProcessOrder {
 	 */
 
 	@Override
+    @Secured("ROLE_ADMIN")
 	@PUT
 	@Produces("application/json")
 	@Path("/order")
-    @Secured("ROLE_ADMIN")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public OrderConfirmation createOrder(Order order) {
 
 		try{
@@ -106,11 +102,10 @@ public class ProcessOrderImpl implements IProcessOrder {
 	 */
 
 	@Override
-	@POST
+    @Secured("ROLE_ADMIN")
+    @POST
 	@Produces("application/json")
 	@Path("/order/{orderId}")
-    @Secured("ROLE_ADMIN")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public OrderConfirmation updateOrder(@PathParam("orderId") String orderId, Order order) {
 		
 		try{
@@ -133,11 +128,10 @@ public class ProcessOrderImpl implements IProcessOrder {
 	 */
 
 	@Override
+    @Secured("ROLE_ADMIN")
 	@DELETE
 	@Produces("application/json")
 	@Path("/order/{orderId}")
-    @Secured("ROLE_ADMIN")
-    @PreAuthorize("hasRole('ROLE_ADMIN')")
     public OrderConfirmation deleteOrder(@PathParam("orderId") String orderId) {
 
 		try{

@@ -11,23 +11,13 @@
 package org.mule.application.muleexamplespringsecurity;
 
 import org.apache.commons.codec.binary.Base64;
-import org.apache.commons.httpclient.HttpClient;
-import org.apache.commons.httpclient.HttpMethod;
-import org.apache.commons.httpclient.NameValuePair;
-import org.apache.commons.httpclient.UsernamePasswordCredentials;
-import org.apache.commons.httpclient.auth.AuthScope;
-import org.apache.commons.httpclient.methods.DeleteMethod;
-import org.apache.commons.httpclient.methods.GetMethod;
-import org.apache.commons.httpclient.methods.PutMethod;
+import org.codehaus.jackson.map.ObjectMapper;
 import org.mule.api.MuleMessage;
 import org.mule.api.client.MuleClient;
 import org.mule.tck.FunctionalTestCase;
 import org.mule.transport.NullPayload;
 
-import java.io.BufferedReader;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
 
 public class RestSpringSecurityTestCase extends FunctionalTestCase
@@ -57,62 +47,155 @@ public class RestSpringSecurityTestCase extends FunctionalTestCase
             "]" +
             "}");
 
-    String simpleJsonOrder = new String("{\"orderId\": \"967546567\"}");
+    MuleMessage response;
 
     protected String getConfigResources()
     {
         return "mule-config.xml";
     }
 
-    //TODO: Order tests to create (PUT), retrieve (GET), update (POST) and delete (DELETE) orders in correct sequence
-    //TODO: Complete PUT and POST correctly (add message payload)
-    public void testUnAuthenticatedUser() throws Exception
+    public void  testCreateOrder() throws Exception
     {
-        doRequest("mule-realm", "localhost", "anon_user", "incorrect_password", "http://localhost:4567/authenticate/ordermgmt/order/1", "GET", true, true, 401);
+        response = doRequest("mule-realm", "localhost", "admin_user", "admin_password", "http://localhost:4567/authenticate/ordermgmt/order", "PUT", jsonOrder, true, true);
+
+        assertNotNull(response);
+        assertNull(response.getExceptionPayload());
+        assertFalse(response.getPayload() instanceof NullPayload);
+
+        validateJSONResponse(response,"status","Success");
+
+        String responseString = response.getPayloadAsString();
+        System.out.println("Create (PUT) Order response received: " + responseString);
     }
 
-    public void testAuthenticatedUser() throws Exception
+    public void  testRetrieveOrder() throws Exception
     {
-        doRequest("mule-realm", "localhost", "anon_user", "anon_password", "http://localhost:4567/authenticate/ordermgmt/order/1", "GET", true, true, 200);
+        response = doRequest("mule-realm", "localhost", "admin_user", "admin_password", "http://localhost:4567/authenticate/ordermgmt/order/1", "GET", null, true, true);
+
+        assertNotNull(response);
+        assertNull(response.getExceptionPayload());
+        assertFalse(response.getPayload() instanceof NullPayload);
+
+        validateJSONResponse(response,"status","Success");
+
+        String responseString = response.getPayloadAsString();
+        System.out.println("Retrieve (GET) Order response received: " + responseString);
     }
 
-    public void testUnAuthorizedAccess() throws Exception
+    public void  testUpdateOrder() throws Exception
     {
-//        doRequest("mule-realm", "localhost", "anon_user", "anon_password", "http://localhost:4567/authenticate/ordermgmt/order/1", "PUT", true, true, 405);
-        doRequest("mule-realm", "localhost", "anon_user", "anon_password", "http://localhost:4567/authenticate/ordermgmt/order/1", "GET", true, true, 200);
+        response = doRequest("mule-realm", "localhost", "admin_user", "admin_password", "http://localhost:4567/authenticate/ordermgmt/order/1", "POST", jsonOrder, true, true);
 
+        assertNotNull(response);
+        assertNull(response.getExceptionPayload());
+        assertFalse(response.getPayload() instanceof NullPayload);
+
+        validateJSONResponse(response,"status","Success");
+
+        String responseString = response.getPayloadAsString();
+        System.out.println("Update (POST) Order response received: " + responseString);
     }
 
-    public void testAuthorizedAccess() throws Exception
+    public void  testDeleteOrder() throws Exception
     {
-        doRequest("mule-realm", "localhost", "admin_user", "admin_password", "http://localhost:4567/authenticate/ordermgmt/order/1", "GET", true, true, 200);
-        doRequest("mule-realm", "localhost", "admin_user", "admin_password", "http://localhost:4567/authenticate/ordermgmt/order/1", "POST", true, true, 200);
+        response = doRequest("mule-realm", "localhost", "admin_user", "admin_password", "http://localhost:4567/authenticate/ordermgmt/order/1", "DELETE", null, true, true);
+
+        assertNotNull(response);
+        assertNull(response.getExceptionPayload());
+        assertFalse(response.getPayload() instanceof NullPayload);
+
+        validateJSONResponse(response,"status","Success");
+
+        String responseString = response.getPayloadAsString();
+        System.out.println("Delete (DELETE) Order response received: " + responseString);
     }
+
+//TODO: Complete Authentication and Authorization tests
+//    public void testUnAuthenticatedUser() throws Exception
+//    {
+//        doRequest("mule-realm", "localhost", "anon_user", "incorrect_password", "http://localhost:4567/authenticate/ordermgmt/order/1", "GET", true, true, 401);
+//    }
+//
+//    public void testAuthenticatedUser() throws Exception
+//    {
+//        doRequest("mule-realm", "localhost", "anon_user", "anon_password", "http://localhost:4567/authenticate/ordermgmt/order/1", "GET", true, true, 200);
+//    }
+//
+//    public void testUnAuthorizedAccess() throws Exception
+//    {
+////        doRequest("mule-realm", "localhost", "anon_user", "anon_password", "http://localhost:4567/authenticate/ordermgmt/order/1", "PUT", true, true, 405);
+//        doRequest("mule-realm", "localhost", "anon_user", "anon_password", "http://localhost:4567/authenticate/ordermgmt/order/1", "GET", true, true, 200);
+//
+//    }
+//
+//    public void testAuthorizedAccess() throws Exception
+//    {
+////        doRequest("mule-realm", "localhost", "admin_user", "admin_password", "http://localhost:4567/authenticate/ordermgmt/order", "PUT", true, true, 200);
+//        doRequest("mule-realm", "localhost", "admin_user", "admin_password", "http://localhost:4567/authenticate/ordermgmt/order/1", "GET", true, true, 200);
+//
+//    }
     
-    private void doRequest(String realm,
+    private MuleMessage doRequest(String realm,
                            String host,
                            String username,
                            String password,
                            String urlString,
                            String httpVerb,
+                           String payload,
                            boolean handshake,
-                           boolean preemptive, int result) throws Exception
+                           boolean preemptive) throws Exception
     {
-        HttpClient client = new HttpClient();
-        BufferedReader br = null;
-        List<NameValuePair> params = new ArrayList<NameValuePair>();
-        client.getParams().setAuthenticationPreemptive(preemptive);
-        client.getState().setCredentials(new AuthScope(host, -1, realm),
-                new UsernamePasswordCredentials(username, password));
-        HttpMethod httpMethod;
+
+        String userPass = username + ":" + password;
+        String basicAuth = "Basic " + new String(new Base64().encode(userPass.getBytes()));
+
+        Map httpProps = new HashMap();
+        httpProps.put("http.method",httpVerb);
+        httpProps.put("Content-Type","application/json");
+        httpProps.put("Authorization", basicAuth);
+
+        MuleClient muleClient = muleContext.getClient();
+        MuleMessage clientResponse = muleClient.send(urlString, payload, httpProps);
+
+        return clientResponse;
+    }
+
+    public void validateJSONResponse(MuleMessage responseMessage, String keyName, String expect)
+    {
+        ObjectMapper mapper = new ObjectMapper();
+
+
+        Map<String,Object> map = null;
+
+        try {
+            map = mapper.readValue((String) responseMessage.getPayloadAsString(), Map.class);
+
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+        assertEquals(expect, map.get(keyName));
+
+    }
+/*
+//        HttpClient client = new DefaultHttpClient();
+
+
+//        BufferedReader br = null;
+//        List<NameValuePair> params = new ArrayList<NameValuePair>();
+//        client.getParams().setAuthenticationPreemptive(preemptive);
+//        client.getState().setCredentials(new AuthScope(host, -1, realm),
+//                new UsernamePasswordCredentials(username, password));
+//        HttpMethod httpMethod;
 
         if (httpVerb.equals("DELETE")) {
-            httpMethod = new DeleteMethod(urlString);
+//            httpMethod = new DeleteMethod(urlString);
 
         } else if (httpVerb.equals("POST")){
 // PostMethod Approach
 //            StringRequestEntity stringRequestEntity = new StringRequestEntity(jsonOrder,"application/json","UTF-8");
 //            PostMethod postMethod = new PostMethod(urlString);
+//TODO: Remove redudant Content-Type header (according to ddossot)
 //            postMethod.setRequestHeader("Content-Type","application/json");
 //            postMethod.setRequestEntity(stringRequestEntity);
 //            postMethod.setDoAuthentication(handshake);
@@ -128,8 +211,6 @@ public class RestSpringSecurityTestCase extends FunctionalTestCase
 
 //            URL url = new URL(urlString);
 //            HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-            String userPass = username + ":" + password;
-            String basicAuth = "Basic " + new String(new Base64().encode(userPass.getBytes()));
 //
 //            try {
 //                connection.setDoOutput(true);
@@ -173,6 +254,7 @@ public class RestSpringSecurityTestCase extends FunctionalTestCase
 //                e.printStackTrace();
 //            }
 
+// MuleClient approach
             Map httpProps = new HashMap();
             httpProps.put("http.method","POST");
             httpProps.put("Content-Type","application/json");
@@ -191,22 +273,54 @@ public class RestSpringSecurityTestCase extends FunctionalTestCase
 //            assertEquals(result, status);
 
         } else if (httpVerb.equals("PUT")) {
-            httpMethod = new PutMethod(urlString);
+//            httpMethod = new PutMethod(urlString);
+
+            Map httpProps = new HashMap();
+            httpProps.put("http.method","PUT");
+            httpProps.put("Content-Type","application/json");
+            httpProps.put("Authorization", basicAuth);
+
+            MuleClient muleClient = muleContext.getClient();
+            MuleMessage response = muleClient.send(urlString, jsonOrder, httpProps);
+
+            assertNotNull(response);
+            assertNull(response.getExceptionPayload());
+            assertFalse(response.getPayload() instanceof NullPayload);
+
+            String responseString = response.getPayloadAsString();
+            System.out.println("Response received: " + responseString);
+
 
         } else {
-            httpMethod = new GetMethod(urlString);
+//            httpMethod = new GetMethod(urlString);
+//
+//            httpMethod.setDoAuthentication(handshake);
 
-            httpMethod.setDoAuthentication(handshake);
+            Map httpProps = new HashMap();
+            httpProps.put("http.method","GET");
+            httpProps.put("Content-Type","application/json");
+            httpProps.put("Authorization", basicAuth);
 
-            try
-            {
-                int status = client.executeMethod(httpMethod);
-                assertEquals(result, status);
-            }
-            finally
-            {
-                httpMethod.releaseConnection();
-            }
+            MuleClient muleClient = muleContext.getClient();
+            MuleMessage response = muleClient.send(urlString, null, httpProps);
+
+            assertNotNull(response);
+            assertNull(response.getExceptionPayload());
+            assertFalse(response.getPayload() instanceof NullPayload);
+
+            String responseString = response.getPayloadAsString();
+            System.out.println("Response received: " + responseString);
+
+
+//            try
+//            {
+//                int status = client.executeMethod(httpMethod);
+//                assertEquals(result, status);
+//            }
+//            finally
+//            {
+//                httpMethod.releaseConnection();
+//            }
 
         }
 
@@ -234,7 +348,8 @@ public class RestSpringSecurityTestCase extends FunctionalTestCase
 //            httpMethod.releaseConnection();
 //            if(br != null) try {br.close(); } catch (Exception fe) {}
 //        }
-    }
+*/
+
 
     protected String getUrl()
     {

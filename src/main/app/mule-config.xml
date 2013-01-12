@@ -53,14 +53,6 @@ http://www.mulesoft.org/schema/mule/spring-security http://www.mulesoft.org/sche
 
         <logger message="Incoming payload = #[message.payload]" level="INFO" doc:name="LOG Rest input"/>
 
-        <!--<choice>-->
-            <!--<when expression="#[http.method == 'POST']">-->
-                <!--<byte-array-to-serializable-transformer/>-->
-                <!--<byte-array-to-string-transformer/>-->
-                <!--<byte-array-to-object-transformer doc:name="Byte Array to Object"/>-->
-            <!--</when>-->
-        <!--</choice>-->
-
         <jersey:resources doc:name="Jersey (Implementation)">
             <component>
                 <spring-object bean="processOrderBean"/>

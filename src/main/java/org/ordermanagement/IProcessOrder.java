@@ -36,13 +36,13 @@ public interface IProcessOrder {
 	/**
 	 * Update an order.
 	 * 
-	 * @param order
+//	 * @param order
 	 * @return Order
 	 */
     @POST
     @Produces("application/json")
-    @Path("/order/{orderId}")
-    OrderConfirmation updateOrder(String orderId, Order order);
+    @Path("/order")
+    OrderConfirmation updateOrder(Order order);
 
 	/**
 	 * Delete an order.

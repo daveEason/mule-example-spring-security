@@ -51,7 +51,7 @@ http://www.mulesoft.org/schema/mule/spring-security http://www.mulesoft.org/sche
 
         <http:basic-security-filter realm="mule-realm"/>
 
-        <logger message="Incoming payload = #[message.payload]" level="INFO" doc:name="LOG Rest input"/>
+        <logger message="Incoming payload = #[message.payload], http.verb = #[message.inboundProperties['http.method']]" level="INFO" doc:name="LOG Rest input"/>
 
         <jersey:resources doc:name="Jersey (Implementation)">
             <component>

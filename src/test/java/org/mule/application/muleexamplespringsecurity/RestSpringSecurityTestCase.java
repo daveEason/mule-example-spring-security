@@ -56,7 +56,7 @@ public class RestSpringSecurityTestCase extends FunctionalTestCase
 
     public void  testCreateOrder() throws Exception
     {
-        response = doRequest("mule-realm", "localhost", "admin_user", "admin_password", "http://localhost:4567/authenticate/ordermgmt/order", "PUT", jsonOrder, true, true);
+        response = doRequest("admin_user", "admin_password", "http://localhost:4567/authenticate/ordermgmt/order", "PUT", jsonOrder);
 
         assertNotNull(response);
         assertNull(response.getExceptionPayload());
@@ -70,7 +70,7 @@ public class RestSpringSecurityTestCase extends FunctionalTestCase
 
     public void  testRetrieveOrder() throws Exception
     {
-        response = doRequest("mule-realm", "localhost", "anon_user", "anon_password", "http://localhost:4567/authenticate/ordermgmt/order/1", "GET", null, true, true);
+        response = doRequest("anon_user", "anon_password", "http://localhost:4567/authenticate/ordermgmt/order/1", "GET", null);
 
         assertNotNull(response);
         assertNull(response.getExceptionPayload());
@@ -84,7 +84,7 @@ public class RestSpringSecurityTestCase extends FunctionalTestCase
 
     public void  testUpdateOrder() throws Exception
     {
-        response = doRequest("mule-realm", "localhost", "admin_user", "admin_password", "http://localhost:4567/authenticate/ordermgmt/order", "POST", jsonOrder, true, true);
+        response = doRequest("admin_user", "admin_password", "http://localhost:4567/authenticate/ordermgmt/order", "POST", jsonOrder);
 
         assertNotNull(response);
         assertNull(response.getExceptionPayload());
@@ -98,7 +98,7 @@ public class RestSpringSecurityTestCase extends FunctionalTestCase
 
     public void  testDeleteOrder() throws Exception
     {
-        response = doRequest("mule-realm", "localhost", "admin_user", "admin_password", "http://localhost:4567/authenticate/ordermgmt/order/1", "DELETE", null, true, true);
+        response = doRequest("admin_user", "admin_password", "http://localhost:4567/authenticate/ordermgmt/order/1", "DELETE", null);
 
         assertNotNull(response);
         assertNull(response.getExceptionPayload());
@@ -110,15 +110,11 @@ public class RestSpringSecurityTestCase extends FunctionalTestCase
         System.out.println("Delete (DELETE) Order response received: " + responseString);
     }
 
-    private MuleMessage doRequest(String realm,
-                           String host,
-                           String username,
+    private MuleMessage doRequest(String username,
                            String password,
                            String urlString,
                            String httpVerb,
-                           String payload,
-                           boolean handshake,
-                           boolean preemptive) throws Exception
+                           String payload) throws Exception
     {
 
         String userPass = username + ":" + password;

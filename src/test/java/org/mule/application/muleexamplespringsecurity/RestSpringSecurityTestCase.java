@@ -20,132 +20,151 @@ import org.mule.transport.NullPayload;
 import java.util.HashMap;
 import java.util.Map;
 
-public class RestSpringSecurityTestCase extends FunctionalTestCase
-{
-    String jsonOrder = new String("{\"orderId\":\"1\"," +
-            "\"customer\":{" +
-            "\"firstName\": \"David\"," +
-            "\"lastName\": \"Eason\"," +
-            "\"city\": \"San Francisco\"," +
-            "\"state\": \"California\"" +
-            "}," +
-            "\"items\":[" +
-            "{" +
-            "\"productId\": \"1\"," +
-            "\"name\": \"WIRELESS ROUTER\"," +
-            "\"manufacturer\": \"SONY\"," +
-            "\"price\": \"3.00\"," +
-            "\"quantity\": \"5\"" +
-            "}," +
-            "{" +
-            "\"productId\": \"2\"," +
-            "\"name\": \"WIRELESS KEYBOARD\"," +
-            "\"manufacturer\": \"LOGITECH\"," +
-            "\"price\": \"5.00\"," +
-            "\"quantity\": \"3\"" +
-            "}" +
-            "]" +
-            "}");
+public class RestSpringSecurityTestCase extends FunctionalTestCase {
 
-    MuleMessage response;
+    private final String jsonOrder;
+    private MuleMessage response;
 
-    protected String getConfigResources()
-    {
+    public RestSpringSecurityTestCase() {
+        jsonOrder = "{\"orderId\":\"1\"," +
+                "\"customer\":{" +
+                "\"firstName\": \"David\"," +
+                "\"lastName\": \"Eason\"," +
+                "\"city\": \"San Francisco\"," +
+                "\"state\": \"California\"" +
+                "}," +
+                "\"items\":[" +
+                "{" +
+                "\"productId\": \"1\"," +
+                "\"name\": \"WIRELESS ROUTER\"," +
+                "\"manufacturer\": \"SONY\"," +
+                "\"price\": \"3.00\"," +
+                "\"quantity\": \"5\"" +
+                "}," +
+                "{" +
+                "\"productId\": \"2\"," +
+                "\"name\": \"WIRELESS KEYBOARD\"," +
+                "\"manufacturer\": \"LOGITECH\"," +
+                "\"price\": \"5.00\"," +
+                "\"quantity\": \"3\"" +
+                "}" +
+                "]" +
+                "}";
+    }
+
+    protected String getConfigResources() {
         return "mule-config.xml";
     }
 
-    public void  testCreateOrder() throws Exception
-    {
+    public void testCreateOrder() throws Exception {
         response = doRequest("admin_user", "admin_password", "http://localhost:4567/authenticate/ordermgmt/order", "PUT", jsonOrder);
 
         assertNotNull(response);
         assertNull(response.getExceptionPayload());
         assertFalse(response.getPayload() instanceof NullPayload);
 
-        validateJSONResponse(response,"status","Success");
+        validateJSONResponse(response, "status", "Success");
 
         String responseString = response.getPayloadAsString();
         System.out.println("Create (PUT) Order response received: " + responseString);
     }
 
-    public void  testRetrieveOrder() throws Exception
-    {
+    public void testRetrieveOrder() throws Exception {
         response = doRequest("anon_user", "anon_password", "http://localhost:4567/authenticate/ordermgmt/order/1", "GET", null);
 
         assertNotNull(response);
         assertNull(response.getExceptionPayload());
         assertFalse(response.getPayload() instanceof NullPayload);
 
-        validateJSONResponse(response,"status","Success");
+        validateJSONResponse(response, "status", "Success");
 
         String responseString = response.getPayloadAsString();
         System.out.println("Retrieve (GET) Order response received: " + responseString);
     }
 
-    public void  testUpdateOrder() throws Exception
-    {
+    public void testUpdateOrder() throws Exception {
         response = doRequest("admin_user", "admin_password", "http://localhost:4567/authenticate/ordermgmt/order", "POST", jsonOrder);
 
         assertNotNull(response);
         assertNull(response.getExceptionPayload());
         assertFalse(response.getPayload() instanceof NullPayload);
 
-        validateJSONResponse(response,"status","Success");
+        validateJSONResponse(response, "status", "Success");
 
         String responseString = response.getPayloadAsString();
         System.out.println("Update (POST) Order response received: " + responseString);
     }
 
-    public void  testDeleteOrder() throws Exception
-    {
+    public void testDeleteOrder() throws Exception {
         response = doRequest("admin_user", "admin_password", "http://localhost:4567/authenticate/ordermgmt/order/1", "DELETE", null);
 
         assertNotNull(response);
         assertNull(response.getExceptionPayload());
         assertFalse(response.getPayload() instanceof NullPayload);
 
-        validateJSONResponse(response,"status","Success");
+        validateJSONResponse(response, "status", "Success");
 
         String responseString = response.getPayloadAsString();
         System.out.println("Delete (DELETE) Order response received: " + responseString);
     }
 
+    public void testExceptionUnAuthorizedAccess() throws Exception {
+        response = doRequest("anon_user", "anon_password", "http://localhost:4567/authenticate/ordermgmt/order", "PUT", jsonOrder);
+
+        assertNotNull(response);
+        assertNotNull(response.getExceptionPayload());
+        assertFalse(response.getPayload() instanceof NullPayload);
+
+        assertEquals("405", response.getInboundProperty("http.status"));
+    }
+
+    public void testExceptionBadCredentials() throws Exception {
+        response = doRequest("admin_user", "bad_password", "http://localhost:4567/authenticate/ordermgmt/order", "GET", jsonOrder);
+
+        assertNotNull(response);
+        assertNotNull(response.getExceptionPayload());
+        assertFalse(response.getPayload() instanceof NullPayload);
+
+        assertEquals("401", response.getInboundProperty("http.status"));
+
+    }
+
     private MuleMessage doRequest(String username,
-                           String password,
-                           String urlString,
-                           String httpVerb,
-                           String payload) throws Exception
-    {
+                                  String password,
+                                  String urlString,
+                                  String httpVerb,
+                                  String payload) throws Exception {
 
         String userPass = username + ":" + password;
         String basicAuth = "Basic " + new String(new Base64().encode(userPass.getBytes()));
 
         Map httpProps = new HashMap();
-        httpProps.put("http.method",httpVerb);
-        httpProps.put("Content-Type","application/json");
-        httpProps.put("Authorization", basicAuth);
+        try {
+            httpProps.put("http.method", httpVerb);
+            httpProps.put("Content-Type", "application/json");
+            httpProps.put("Authorization", basicAuth);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
 
         MuleClient muleClient = muleContext.getClient();
-        MuleMessage clientResponse = muleClient.send(urlString, payload, httpProps);
 
-        return clientResponse;
+        return muleClient.send(urlString, payload, httpProps);
     }
 
-    public void validateJSONResponse(MuleMessage responseMessage, String keyName, String expect)
-    {
+    public void validateJSONResponse(MuleMessage responseMessage, String keyName, String expect) {
         ObjectMapper mapper = new ObjectMapper();
 
-
-        Map<String,Object> map = null;
-
         try {
-            map = mapper.readValue((String) responseMessage.getPayloadAsString(), Map.class);
+            Map<String, Object> map = mapper.readValue(responseMessage.getPayloadAsString(), Map.class);
+
+            assertNotNull(map.get(keyName));
+            assertEquals(expect, map.get(keyName));
 
         } catch (Exception e) {
             e.printStackTrace();
         }
 
-        assertEquals(expect, map.get(keyName));
 
     }
 }

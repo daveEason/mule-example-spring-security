@@ -3,7 +3,6 @@
       xmlns:http="http://www.mulesoft.org/schema/mule/http"
       xmlns:mule-ss="http://www.mulesoft.org/schema/mule/spring-security"
       xmlns:jersey="http://www.mulesoft.org/schema/mule/jersey"
-      xmlns:json="http://www.mulesoft.org/schema/mule/json"
       xmlns:spring="http://www.springframework.org/schema/beans"
       xmlns:ss="http://www.springframework.org/schema/security"
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
@@ -11,7 +10,6 @@
       xsi:schemaLocation="
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd 
 http://www.mulesoft.org/schema/mule/jersey http://www.mulesoft.org/schema/mule/jersey/current/mule-jersey.xsd
-http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
 http://www.springframework.org/schema/security http://www.springframework.org/schema/security/spring-security-3.1.xsd
 http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd 
@@ -65,7 +63,6 @@ http://www.mulesoft.org/schema/mule/spring-security http://www.mulesoft.org/sche
             <choice >
                 <when expression="#[exception.getCauseException().getClass().getName()=='org.springframework.security.authentication.BadCredentialsException']">
                     <logger level="INFO" message="Authentication failed exception: #[exception.getCauseException().getClass().getName()]"/>
-                    <!-- TODO: Determine correct http status code to return in this case -->
                     <set-property propertyName="http.status" value="401"/>
                     <http:response-builder status="401" doc:name="Status code = 401" doc:description="Authentication failed"/>
                 </when>

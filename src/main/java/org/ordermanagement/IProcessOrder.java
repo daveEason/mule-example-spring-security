@@ -15,7 +15,7 @@ public interface IProcessOrder {
 	/**
 	 * Retrieve an Order.
 	 * 
-	 * @param orderId
+	 * @param orderId Identifier of Order to be retrieved
 	 * @return Order
 	 */
     @GET
@@ -47,7 +47,7 @@ public interface IProcessOrder {
 	/**
 	 * Delete an order.
 	 * 
-	 * @param orderId
+	 * @param orderId Identifier of Order to be deleted
 	 * @return String
 	 */
     @DELETE

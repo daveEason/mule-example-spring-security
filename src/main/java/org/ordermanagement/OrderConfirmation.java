@@ -5,9 +5,9 @@ import org.codehaus.jackson.annotate.JsonAutoDetect;
 @JsonAutoDetect
 public class OrderConfirmation {
 
-	public String orderId;
-	public String status;
-	public Order order;
+	private String orderId;
+	private String status;
+	private Order order;
 	
 	public String getOrderId(){
 		return this.orderId;

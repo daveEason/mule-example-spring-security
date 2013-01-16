@@ -17,9 +17,9 @@ import java.util.StringTokenizer;
 public class ProcessOrderImpl implements IProcessOrder {
 
     public Order order;
-    public OrderConfirmation orderConfirmation = new OrderConfirmation();
     public String response;
-    public static Map<String, Order> map = new HashMap<String, Order>();
+    private OrderConfirmation orderConfirmation = new OrderConfirmation();
+    private static Map<String, Order> map = new HashMap<String, Order>();
 
     /*
       * (non-Javadoc)

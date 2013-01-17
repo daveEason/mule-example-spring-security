@@ -1,2 +1,6 @@
 
-curl -u admin_user:admin_password -X POST -H "Content-Type: application/json" -d @Order.json -s http://localhost:4567/authenticate/ordermgmt/order/1
+---- Order Management (CURL) Tests:
+curl -u admin_user:admin_password -X PUT -H "Content-Type: application/json" -d @Order.json -s http://localhost:4567/authenticate/ordermgmt/order
+curl -u anon_user:anon_password -G -s http://localhost:4567/authenticate/ordermgmt/order/1
+curl -u admin_user:admin_password -X POST -H "Content-Type: application/json" -d @Order.json -s http://localhost:4567/authenticate/ordermgmt/order
+curl -u admin_user:admin_password -X DELETE -s http://localhost:4567/authenticate/ordermgmt/order/1

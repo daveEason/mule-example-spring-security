@@ -163,6 +163,7 @@ public class RestSpringSecurityTestCase extends FunctionalTestCase {
 
         } catch (Exception e) {
             e.printStackTrace();
+            assertTrue(false);
         }
 
 

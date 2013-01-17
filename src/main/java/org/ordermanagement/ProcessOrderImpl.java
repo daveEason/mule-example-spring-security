@@ -18,7 +18,7 @@ public class ProcessOrderImpl implements IProcessOrder {
 
     public Order order;
     public String response;
-    private OrderConfirmation orderConfirmation = new OrderConfirmation();
+    private OrderConfirmation orderConfirmation = null;
     private static Map<String, Order> map = new HashMap<String, Order>();
 
     /*
@@ -34,6 +34,8 @@ public class ProcessOrderImpl implements IProcessOrder {
     @Path("/order/{orderId}")
     public OrderConfirmation retrieveOrder(@PathParam("orderId") String orderId) {
 
+        orderConfirmation = new OrderConfirmation();
+
         orderId = extractLastPathParam(orderId);
 
         System.out.println("GET orderId = " + orderId);
@@ -46,7 +48,6 @@ public class ProcessOrderImpl implements IProcessOrder {
 
         } else {
 
-            orderConfirmation.setOrderId(orderId);
             orderConfirmation.setStatus("Failed - no matching order found for orderId = " + orderId);
         }
 
@@ -66,6 +67,8 @@ public class ProcessOrderImpl implements IProcessOrder {
     @Path("/order")
     public OrderConfirmation createOrder(Order order) {
 
+        orderConfirmation = new OrderConfirmation();
+
         try {
 
             int i = ProcessOrderImpl.map.size() + 1;
@@ -79,7 +82,7 @@ public class ProcessOrderImpl implements IProcessOrder {
             System.out.println("PUT orderId = " + orderId);
 
         } catch (Exception e) {
-            orderConfirmation.setStatus("An exception was caught while creating your order");
+            orderConfirmation.setStatus("Failed - An exception was caught while creating your order");
         }
 
         System.out.println("PUT orderConfirmation.orderId" + orderConfirmation.getOrderId());
@@ -99,6 +102,8 @@ public class ProcessOrderImpl implements IProcessOrder {
     @Path("/order")
     public OrderConfirmation updateOrder(Order order) {
 
+        orderConfirmation = new OrderConfirmation();
+
         System.out.println("POST orderId = " + order.getOrderId());
 
         if (ProcessOrderImpl.map.get(order.getOrderId()) != null) {
@@ -110,7 +115,6 @@ public class ProcessOrderImpl implements IProcessOrder {
 
         } else {
 
-            orderConfirmation.setOrderId(order.getOrderId());
             orderConfirmation.setStatus("Failed - no matching order found for orderId = " + order.getOrderId());
         }
 
@@ -130,6 +134,8 @@ public class ProcessOrderImpl implements IProcessOrder {
     @Path("/order/{orderId}")
     public OrderConfirmation deleteOrder(@PathParam("orderId") String orderId) {
 
+        orderConfirmation = new OrderConfirmation();
+
         orderId = extractLastPathParam(orderId);
 
         System.out.println("DELETE orderId = " + orderId);
@@ -143,7 +149,6 @@ public class ProcessOrderImpl implements IProcessOrder {
 
         } else {
 
-            orderConfirmation.setOrderId(orderId);
             orderConfirmation.setStatus("Failed - no matching order found for orderId = " + orderId);
         }
 
